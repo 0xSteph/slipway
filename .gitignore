@@ -1,0 +1,26 @@
+# Internal notes & AI working files — never publish
+CLAUDE.md
+CONTEXT.md
+CLAUDE.local.md
+AGENTS.override.md
+.claude/
+notes/
+internal/
+scratch/
+docs/superpowers/
+specs/
+
+# Build output
+node_modules/
+out/
+dist/
+*.vsix
+__pycache__/
+
+# Apple software is never committed
+*.xip
+*.sdk/
+Xcode*.app/
+
+# OS
+.DS_Store
