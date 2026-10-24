@@ -24,3 +24,6 @@ Xcode*.app/
 
 # OS
 .DS_Store
+
+# Extension tooling
+.vscode-test/

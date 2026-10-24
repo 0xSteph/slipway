@@ -1,0 +1,364 @@
+{
+  "name": "slipway",
+  "displayName": "Slipway",
+  "description": "Build SwiftUI apps for iPhone from Linux with xtool, and run them on your device. Early development.",
+  "version": "0.1.0",
+  "publisher": "0xsteph",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xSteph/slipway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0xSteph/slipway/issues"
+  },
+  "homepage": "https://github.com/0xSteph/slipway#readme",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ios",
+    "iphone",
+    "swift",
+    "swiftui",
+    "xtool",
+    "linux",
+    "wsl"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:xtool.yml"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "slipway.doctor.refresh",
+        "title": "Run Doctor",
+        "category": "Slipway",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "slipway.getXcode",
+        "title": "Download Xcode (opens Apple's site)",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.installSdk",
+        "title": "Install iOS SDK from Xcode.xip",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.signIn",
+        "title": "Sign In to Apple",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.signOut",
+        "title": "Sign Out of Apple",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.newApp",
+        "title": "New iOS App",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.build",
+        "title": "Build",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.run",
+        "title": "Run on Device",
+        "category": "Slipway",
+        "icon": "$(play)"
+      },
+      {
+        "command": "slipway.stop",
+        "title": "Stop",
+        "category": "Slipway",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "slipway.selectDevice",
+        "title": "Select Device",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.showDeviceLog",
+        "title": "Show Device Log",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.clearDeviceLog",
+        "title": "Clear Device Log",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.toggleAllDeviceLogs",
+        "title": "Toggle All Device Logs",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.fetchCrashReports",
+        "title": "Fetch Crash Reports",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.refreshApp",
+        "title": "Refresh App (reinstall, resets the 7-day limit)",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.checkAppIds",
+        "title": "Check App ID Budget",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.installBridge",
+        "title": "Install Device Bridge (go-ios)",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.prepareDevice",
+        "title": "Prepare Device for Launch (mount developer disk image)",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.convertAppIcon",
+        "title": "Convert AppIcon to iconPath",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.collectDiagnostics",
+        "title": "Collect Diagnostics",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.doctor.fix",
+        "title": "Fix",
+        "category": "Slipway",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "slipway.revealDevMode",
+        "title": "Show Developer Mode Setting on iPhone",
+        "category": "Slipway"
+      },
+      {
+        "command": "slipway.copyToClipboard",
+        "title": "Copy to Clipboard",
+        "category": "Slipway"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "slipway.doctor.refresh",
+          "when": "view == slipway.doctor",
+          "group": "navigation"
+        },
+        {
+          "command": "slipway.run",
+          "when": "view == slipway.doctor",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "slipway.doctor.fix",
+          "when": "view == slipway.doctor && viewItem == fixable",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "slipway.doctor.fix",
+          "when": "false"
+        },
+        {
+          "command": "slipway.copyToClipboard",
+          "when": "false"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "slipway.run",
+        "key": "ctrl+alt+r",
+        "when": "slipway.isProject"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "slipway",
+          "title": "Slipway",
+          "icon": "media/activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "slipway": [
+        {
+          "id": "slipway.doctor",
+          "name": "Doctor"
+        }
+      ]
+    },
+    "taskDefinitions": [
+      {
+        "type": "slipway",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "build",
+              "run"
+            ],
+            "description": "What the task does."
+          },
+          "configuration": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "release"
+            ],
+            "description": "Build configuration."
+          }
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Slipway",
+      "properties": {
+        "slipway.xtoolPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the xtool executable. Empty means look on PATH and in ~/.local/bin."
+        },
+        "slipway.goIosPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the go-ios `ios` executable. Empty means the copy Slipway installs."
+        },
+        "slipway.buildConfiguration": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "release"
+          ],
+          "default": "debug",
+          "description": "Configuration for Build and Run."
+        },
+        "slipway.deviceLog.showAllProcesses": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the whole device log instead of only your app's lines."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "slipway.getStarted",
+        "title": "Get started with Slipway",
+        "description": "Set up iOS development on Linux and run your first app on an iPhone.",
+        "steps": [
+          {
+            "id": "swiftExtension",
+            "title": "Install the Swift extension",
+            "description": "Slipway builds; the Swift extension gives you completion and errors as you type.\n[Install Swift extension](command:workbench.extensions.installExtension?%22swiftlang.swift-vscode%22)",
+            "media": {
+              "markdown": "media/walkthrough/swift.md"
+            },
+            "completionEvents": [
+              "onExtensionInstalled:swiftlang.swift-vscode"
+            ]
+          },
+          {
+            "id": "xcode",
+            "title": "Get the iOS SDK",
+            "description": "Download Xcode from Apple with your own Apple ID, then let xtool extract the iOS SDK from it.\n[Open Apple's download page](command:slipway.getXcode)\n[Install SDK from Xcode.xip](command:slipway.installSdk)",
+            "media": {
+              "markdown": "media/walkthrough/xcode.md"
+            },
+            "completionEvents": [
+              "onCommand:slipway.installSdk"
+            ]
+          },
+          {
+            "id": "signIn",
+            "title": "Sign in to Apple",
+            "description": "xtool signs your app with your Apple ID. You type your password into xtool, never into Slipway.\n[Sign in](command:slipway.signIn)",
+            "media": {
+              "markdown": "media/walkthrough/signin.md"
+            },
+            "completionEvents": [
+              "onCommand:slipway.signIn"
+            ]
+          },
+          {
+            "id": "newApp",
+            "title": "Create an app",
+            "description": "Start from a SwiftUI template that builds on Linux.\n[New iOS App](command:slipway.newApp)",
+            "media": {
+              "markdown": "media/walkthrough/newapp.md"
+            },
+            "completionEvents": [
+              "onCommand:slipway.newApp"
+            ]
+          },
+          {
+            "id": "run",
+            "title": "Run it on your iPhone",
+            "description": "Plug in your iPhone, unlock it and tap Trust. Then press Run.\n[Run on Device](command:slipway.run)",
+            "media": {
+              "markdown": "media/walkthrough/run.md"
+            },
+            "completionEvents": [
+              "onCommand:slipway.run"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint src test && prettier --check src test",
+    "format": "prettier --write src test",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "vitest run",
+    "pretest:integration": "npm run compile && tsc -p test/integration",
+    "test:integration": "vscode-test",
+    "package": "npm run compile -- --production && vsce package"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/mocha": "10.0.10",
+    "@types/node": "24.19.2",
+    "@types/vscode": "1.93.0",
+    "@vscode/test-cli": "0.0.15",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
