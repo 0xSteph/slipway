@@ -13,6 +13,7 @@
     "url": "https://github.com/0xSteph/slipway/issues"
   },
   "homepage": "https://github.com/0xSteph/slipway#readme",
+  "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },

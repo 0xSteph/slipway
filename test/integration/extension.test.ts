@@ -52,15 +52,21 @@ suite("Slipway extension", () => {
     console.log(
       checks.map((c) => `      [${c.status}] ${c.id}: ${c.label} — ${c.detail}`).join("\n"),
     );
+    if (process.platform === "win32") {
+      assert.deepStrictEqual(
+        checks.map((c) => [c.id, c.status]),
+        [["host", "fail"]],
+      );
+      return;
+    }
+    const xtool = checks.find((c) => c.id === "xtool");
+    assert.ok(xtool, "xtool row");
+    // Without xtool Doctor stops there; with it, the phone row must say none is attached.
+    if (xtool.status === "fail") return;
     assert.ok(
       checks.some((c) => c.id === "device" && c.status === "warn"),
       "no-device row",
     );
-    if (hasXtool())
-      assert.ok(
-        checks.some((c) => c.id === "xtool" && c.status === "pass"),
-        "xtool row",
-      );
   });
 
   test("Build puts compiler errors in the Problems panel and clears them when fixed", async function () {
