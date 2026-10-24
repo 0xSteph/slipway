@@ -282,11 +282,10 @@ export async function runChecks(
         : {
             id: "devMode",
             label: "Developer Mode",
-            status: devMode === false ? "fail" : "warn",
+            status: "warn",
+            // go-ios can't tell "off" from "couldn't ask", so this never shows as a hard fail.
             detail:
-              devMode === false
-                ? "Off. Settings → Privacy & Security → Developer Mode, then restart the phone."
-                : "Couldn't check. Unlock the phone.",
+              "Off, or the phone is locked. Settings → Privacy & Security → Developer Mode, then restart.",
             fix: { title: "Show the setting", command: "slipway.revealDevMode" },
           },
     );

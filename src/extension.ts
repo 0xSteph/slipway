@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext): {
         `${record.bundleId} on ${device.name}: ${describeExpiry(record)}. Reinstall it now to reset the 7-day limit?`,
         "Refresh",
       );
-      if (choice) await runner.refreshApp();
+      if (choice) await runner.refreshApp({ appPath: record.appPath, udid: record.udid });
     }
   };
 
@@ -113,6 +113,10 @@ export function activate(context: vscode.ExtensionContext): {
   command("slipway.selectDevice", () => devices.pick());
   command("slipway.showDeviceLog", () => deviceLog.channel.show());
   command("slipway.clearDeviceLog", () => deviceLog.channel.clear());
+  command("slipway.copyDeviceLog", async () => {
+    await vscode.env.clipboard.writeText(deviceLog.textSinceLaunch());
+    void vscode.window.showInformationMessage("Device log since the last launch copied.");
+  });
   command("slipway.toggleAllDeviceLogs", async () => {
     const config = vscode.workspace.getConfiguration("slipway");
     const next = !config.get<boolean>("deviceLog.showAllProcesses", false);

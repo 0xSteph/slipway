@@ -63,7 +63,10 @@ export function parseInfo(stdout: string): DeviceInfo {
   };
 }
 
-/** `devmode get` prints false when the query itself failed, so stderr decides "unknown". */
+/**
+ * `devmode get` prints false both when Developer Mode is off and when the query failed
+ * (the error is discarded, cmd_device_management.go:244), so false only means "maybe off".
+ */
 export function parseDevMode(stdout: string, stderr: string): boolean | undefined {
   const value = parseJson(stdout.trim()) as { DeveloperModeEnabled?: unknown } | undefined;
   if (value?.DeveloperModeEnabled === true) return true;
@@ -103,6 +106,11 @@ export function parseSyslogLine(line: string): SyslogEntry | undefined {
     };
   }
   return typeof value.msg === "string" ? { message: value.msg } : undefined;
+}
+
+/** Syslog names lines from frameworks as `MyApp(Foundation)`; the app is the part before the bracket. */
+export function baseProcessName(process: string | undefined): string | undefined {
+  return process?.replace(/\(.*\)$/, "");
 }
 
 export function parseCrashList(stdout: string): string[] {

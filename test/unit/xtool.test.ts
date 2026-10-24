@@ -72,6 +72,11 @@ describe("xtool output parsing", () => {
       "Apple Development: a@b.com (expires Oct 30, 2026)",
     ]);
     expect(parseRevocationPrompt(text.replace(/Continue.*$/, ""))).toBeUndefined();
+    const promptFirst =
+      "Continue? (yes/no): \nThe following certificates must be revoked:\n- Apple Development: a@b.com (expires Oct 30, 2026)\n";
+    expect(parseRevocationPrompt(promptFirst)).toEqual([
+      "Apple Development: a@b.com (expires Oct 30, 2026)",
+    ]);
   });
 
   it("recognises Apple's free-team signing block", () => {
@@ -89,6 +94,9 @@ describe("xtool output parsing", () => {
     expect(authErrorHint("`build --sign` requires logging in with `xtool auth`")).toMatch(
       /Sign In/,
     );
+    expect(
+      authErrorHint("Error: Please log in with `xtool auth` before running this command."),
+    ).toMatch(/Sign In/);
   });
 
   it("parses install progress and errors", () => {

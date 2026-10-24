@@ -12,6 +12,7 @@ import { BuiltApp, readBuiltApp } from "./project/config";
 import { Project, findBuiltApp, findProject } from "./project/project";
 import { Tools } from "./tools";
 import {
+  authErrorHint,
   isBannedProfileError,
   parseErrorLine,
   parseInstallProgress,
@@ -23,6 +24,8 @@ const DDI_CONSENT_KEY = "slipway.ddiConsent";
 interface Session {
   udid: string;
   app: BuiltApp;
+  /** The `XTL-…` bundle ID xtool installed the app under. */
+  installedId: string;
   pid?: number;
 }
 
@@ -91,6 +94,7 @@ export class RunController implements vscode.Disposable {
       await this.launch(device, app, signal);
     } catch (error) {
       if (signal.aborted) return;
+      this.deviceLog.stop();
       this.idle("$(error) Run failed");
       const message = error instanceof Error ? error.message : String(error);
       this.log.error(message);
@@ -100,28 +104,42 @@ export class RunController implements vscode.Disposable {
     }
   }
 
-  async refreshApp(): Promise<void> {
-    const project = this.requireProject();
-    if (!project) return;
-    const app = findBuiltApp(project);
+  /** Reinstalls a previous build without rebuilding; xtool re-signs it with a fresh 7-day profile. */
+  async refreshApp(target?: { appPath: string; udid: string }): Promise<void> {
+    let app: BuiltApp | undefined;
+    if (target) {
+      app = existsSync(target.appPath) ? readBuiltApp(target.appPath) : undefined;
+    } else {
+      const project = this.requireProject();
+      if (!project) return;
+      app = findBuiltApp(project);
+    }
     if (!app) {
       void vscode.window.showWarningMessage(
         "There's no build to reinstall yet. Run the app once first.",
       );
       return;
     }
-    const device = this.devices.selected ?? (await this.devices.pick());
+    const device = target
+      ? this.devices.all.find((d) => d.udid === target.udid)
+      : (this.devices.selected ?? (await this.devices.pick()));
     if (!device) return;
+    if (this.session || this.abort) await this.stop();
     this.abort = new AbortController();
+    const signal = this.abort.signal;
     try {
-      if (await this.install(device, app, this.abort.signal)) {
+      if (await this.install(device, app, signal)) {
         this.idle();
         void vscode.window.showInformationMessage(
           `Reinstalled ${app.executable}. It's good for another 7 days.`,
         );
       }
+    } catch (error) {
+      if (!signal.aborted)
+        void vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error));
+      this.idle();
     } finally {
-      this.abort = undefined;
+      if (this.abort?.signal === signal) this.abort = undefined;
     }
   }
 
@@ -134,7 +152,7 @@ export class RunController implements vscode.Disposable {
     this.session = undefined;
     if (session && this.bridge.installed) {
       await this.bridge
-        .kill(session.udid, { pid: session.pid, bundleId: session.app.bundleId })
+        .kill(session.udid, { pid: session.pid, bundleId: session.installedId })
         .catch(() => undefined);
     }
     this.deviceLog.stop();
@@ -226,16 +244,23 @@ export class RunController implements vscode.Disposable {
     });
     if (!proc) throw new Error("xtool wasn't found. Open the Slipway Doctor to install it.");
     // Without a matching device xtool waits forever ("Waiting for device to be connected...").
-    const noDevice = setTimeout(() => !connected && proc.kill(), 20000);
+    let gaveUpWaiting = false;
+    const noDevice = setTimeout(() => {
+      if (connected) return;
+      gaveUpWaiting = true;
+      proc.kill();
+    }, 20000);
     const result = await proc.done;
     clearTimeout(noDevice);
     if (result.cancelled) return false;
-    if (!connected)
+    if (gaveUpWaiting)
       throw new Error(
         `${device.name} isn't reachable. Unlock it, check the cable, and tap Trust if asked.`,
       );
     if (result.code !== 0) {
       const all = result.stdout + result.stderr;
+      const hint = authErrorHint(all);
+      if (hint) throw new Error(hint);
       if (isBannedProfileError(all)) {
         await this.explainBannedProfile();
         this.idle("$(error) Install blocked");
@@ -282,10 +307,29 @@ export class RunController implements vscode.Disposable {
         ? (await this.bridge.info(device.udid).catch(() => undefined))?.iosVersion
         : undefined);
     const route = iosVersion ? launchPath(iosVersion) : "tunnel";
+    if (route === "unsupported") {
+      this.idle(`$(check) Installed on ${device.name}`);
+      void vscode.window.showInformationMessage(
+        `Installed. Open ${app.executable} on your phone. Launching from Linux needs iOS 17.4.1 or later (this phone has iOS ${iosVersion}).`,
+      );
+      return;
+    }
+    // The app is on the phone under xtool's XTL- prefixed ID, which go-ios can look up.
+    if (!(await this.ensureBridge())) {
+      this.idle(`$(check) Installed on ${device.name}`);
+      return;
+    }
+    const installedId = await this.bridge.installedBundleId(
+      device.udid,
+      app.bundleId,
+      app.executable,
+    );
+    if (!installedId)
+      throw new Error(`Installed, but ${app.bundleId} wasn't found in the phone's app list.`);
 
     if (route === "xtool") {
       this.status("$(rocket) Launching…");
-      const result = await this.tools.xtool(["launch", "-u", device.udid, app.bundleId], {
+      const result = await this.tools.xtool(["launch", "-u", device.udid, installedId], {
         signal,
         timeoutMs: 60000,
       });
@@ -294,13 +338,6 @@ export class RunController implements vscode.Disposable {
           `Launch failed: ${parseErrorLine(result.stdout + result.stderr) ?? "xtool launch failed"}`,
         );
       this.idle(`$(check) Launched on ${device.name}`);
-      return;
-    }
-    if (route === "unsupported") {
-      this.idle(`$(check) Installed on ${device.name}`);
-      void vscode.window.showInformationMessage(
-        `Installed. Open ${app.executable} on your phone. Launching from Linux needs iOS 17.4.1 or later (this phone has iOS ${iosVersion}).`,
-      );
       return;
     }
 
@@ -313,10 +350,15 @@ export class RunController implements vscode.Disposable {
     this.status("$(rocket) Launching…");
     await this.bridge.ensureTunnel(device.udid);
     if (signal.aborted) return;
-    const pid = await this.bridge.launch(device.udid, app.bundleId);
-    this.session = { udid: device.udid, app, pid };
+    const pid = await this.bridge.launch(device.udid, installedId, signal);
+    if (signal.aborted) {
+      // Stop arrived while the launch was in flight.
+      await this.bridge.kill(device.udid, { pid, bundleId: installedId }).catch(() => undefined);
+      return;
+    }
+    this.session = { udid: device.udid, app, installedId, pid };
     this.status(`$(debug-stop) Running on ${device.name}`);
-    this.log.info(`Launched ${app.bundleId}${pid !== undefined ? ` (pid ${pid})` : ""}`);
+    this.log.info(`Launched ${installedId}${pid !== undefined ? ` (pid ${pid})` : ""}`);
     this.deviceLog.channel.show(true);
     this.watchForExit(this.session);
   }
@@ -326,13 +368,15 @@ export class RunController implements vscode.Disposable {
     if (!(await this.ensureBridge())) return false;
     if (!existsSync(this.tools.caBundlePath)) await writeCaBundle(this.tools.caBundlePath, signal);
 
+    // go-ios reports false both for "off" and for a failed query, so only warn here;
+    // a launch failure later says whether it really was off.
     if ((await this.bridge.devMode(device.udid)) === false) {
-      const choice = await vscode.window.showWarningMessage(
-        "Developer Mode is off on your iPhone. Turn it on in Settings → Privacy & Security → Developer Mode, then restart the phone.",
-        "Show the Setting",
-      );
-      if (choice) await this.bridge.revealDevMode(device.udid).catch(() => undefined);
-      return false;
+      void vscode.window
+        .showWarningMessage(
+          "Developer Mode may be off on your iPhone. If launching fails, turn it on in Settings → Privacy & Security → Developer Mode and restart the phone.",
+          "Show the Setting",
+        )
+        .then((c) => c && this.bridge.revealDevMode(device.udid).catch(() => undefined));
     }
 
     if (await this.bridge.imageMounted(device.udid)) return true;
@@ -389,41 +433,49 @@ export class RunController implements vscode.Disposable {
 
   private watchForExit(session: Session): void {
     let misses = 0;
-    this.watcher = setInterval(async () => {
-      if (this.session !== session) return;
-      const running = await this.bridge.ps(session.udid);
-      if (!running) return;
-      if (running.some((p) => p.name === session.app.executable)) {
-        misses = 0;
-        return;
-      }
-      if (++misses < 2) return;
-      if (this.watcher) clearInterval(this.watcher);
-      this.watcher = undefined;
-      this.session = undefined;
-      this.idle("$(play) Run");
-      this.log.info(`${session.app.executable} is no longer running.`);
-      setTimeout(() => this.deviceLog.stop(), 3000);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const crashes = await this.crashes
-        .fetchNew(session.udid, session.app.executable)
-        .catch((e: BridgeError) => {
-          this.log.warn(e.message);
-          return [];
-        });
-      if (crashes.length > 0) {
-        void vscode.window
-          .showWarningMessage(
-            `${session.app.executable} crashed. The crash report is open.`,
-            "Show All Reports",
-          )
-          .then(
-            (c) =>
-              c &&
-              vscode.commands.executeCommand("revealFileInOS", this.crashes.folder(session.udid)),
-          );
+    let busy = false;
+    const watcher = setInterval(async () => {
+      // Each `ps` is a fresh RSD handshake and can outlast the interval.
+      if (busy || this.session !== session) return;
+      busy = true;
+      try {
+        const running = await this.bridge.ps(session.udid);
+        if (this.session !== session || !running) return;
+        if (running.some((p) => p.name === session.app.executable)) {
+          misses = 0;
+          return;
+        }
+        if (++misses < 2) return;
+        clearInterval(watcher);
+        if (this.watcher === watcher) this.watcher = undefined;
+        this.session = undefined;
+        if (!this.abort) this.idle();
+        this.log.info(`${session.app.executable} is no longer running.`);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (!this.session && !this.abort) this.deviceLog.stop();
+        const crashes = await this.crashes
+          .fetchNew(session.udid, session.app.executable)
+          .catch((e: BridgeError) => {
+            this.log.warn(e.message);
+            return [];
+          });
+        if (crashes.length > 0) {
+          void vscode.window
+            .showWarningMessage(
+              `${session.app.executable} crashed. The crash report is open.`,
+              "Show All Reports",
+            )
+            .then(
+              (c) =>
+                c &&
+                vscode.commands.executeCommand("revealFileInOS", this.crashes.folder(session.udid)),
+            );
+        }
+      } finally {
+        busy = false;
       }
     }, 2000);
+    this.watcher = watcher;
   }
 
   dispose(): void {

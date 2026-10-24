@@ -103,6 +103,11 @@
         "category": "Slipway"
       },
       {
+        "command": "slipway.copyDeviceLog",
+        "title": "Copy Device Log Since Last Launch",
+        "category": "Slipway"
+      },
+      {
         "command": "slipway.toggleAllDeviceLogs",
         "title": "Toggle All Device Logs",
         "category": "Slipway"

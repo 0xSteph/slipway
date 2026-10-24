@@ -113,8 +113,10 @@ export class GoIos {
       const pairDir = path.join(this.tools.storageDir, "go-ios-pair");
       await mkdir(pairDir, { recursive: true });
       this.agent = this.tools.goIosStart(
-        ["tunnel", "start", "--userspace", `--udid=${udid}`, `--pair-record-path=${pairDir}`],
+        // No --udid: one agent serves every USB device, and other windows can reuse it.
+        ["tunnel", "start", "--userspace", `--pair-record-path=${pairDir}`],
         {
+          bufferOutput: false,
           onStderrLine: (line) => this.tools.log.trace(`[tunnel] ${line}`),
         },
       );
@@ -143,13 +145,35 @@ export class GoIos {
     this.agent = undefined;
   }
 
-  async launch(udid: string, bundleId: string): Promise<number | undefined> {
+  /**
+   * xtool re-signs under `XTL-<identity prefix>.<bundle ID>`, so the ID on the phone
+   * differs from the one in the built app (ProvisioningIdentifiers.swift).
+   */
+  async installedBundleId(
+    udid: string,
+    bundleId: string,
+    executable: string,
+  ): Promise<string | undefined> {
+    const apps = await this.apps(udid);
+    const match =
+      apps.find((a) => a.bundleId.startsWith("XTL-") && a.bundleId.endsWith(`.${bundleId}`)) ??
+      apps.find((a) => a.bundleId === bundleId) ??
+      apps.find((a) => a.executable === executable);
+    return match?.bundleId;
+  }
+
+  async launch(udid: string, bundleId: string, signal?: AbortSignal): Promise<number | undefined> {
     const attempt = () =>
       this.tools.goIos(["launch", bundleId, "--kill-existing", `--udid=${udid}`], {
         timeoutMs: 60000,
+        signal,
       });
     let result = await attempt();
-    if (result.code !== 0 && /tunnel|rsd|closed|reset|EOF/i.test(result.stderr)) {
+    if (
+      result.code !== 0 &&
+      !signal?.aborted &&
+      /tunnel|rsd|closed|reset|EOF/i.test(result.stderr)
+    ) {
       // Stale tunnels aren't rebuilt by go-ios v1.3.2 (go-ios #765).
       await this.refreshTunnel(udid);
       await this.ensureTunnel(udid);
@@ -165,9 +189,11 @@ export class GoIos {
     await this.tools.goIos([...args, `--udid=${udid}`], { timeoutMs: 20000 });
   }
 
+  /** undefined when the list couldn't be read: `ps` prints null with exit 0 on failure. */
   async ps(udid: string): Promise<RunningApp[] | undefined> {
     const result = await this.tools.goIos(["ps", "--apps", `--udid=${udid}`], { timeoutMs: 20000 });
-    return result.code === 0 ? parsePs(result.stdout) : undefined;
+    const apps = result.code === 0 ? parsePs(result.stdout) : [];
+    return apps.length > 0 ? apps : undefined;
   }
 
   async crashList(udid: string, pattern: string): Promise<string[]> {
@@ -188,6 +214,11 @@ export class GoIos {
   }
 
   syslog(udid: string, onLine: (line: string) => void): RunningProcess | undefined {
-    return this.tools.goIosStart(["syslog", "--parse", `--udid=${udid}`], { onStdoutLine: onLine });
+    // A closed tunnel-info port makes go-ios fall back to the lockdown syslog relay,
+    // keeping this stream off the tunnel that launch and ps share (go-ios #724).
+    return this.tools.goIosStart(["syslog", "--parse", "--tunnel-info-port=1", `--udid=${udid}`], {
+      onStdoutLine: onLine,
+      bufferOutput: false,
+    });
   }
 }

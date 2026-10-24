@@ -11,6 +11,8 @@ export interface ProcessOptions {
   onStderrLine?: (line: string) => void;
   /** Raw stdout text as it arrives, including a prompt that has no newline yet. */
   onStdoutData?: (text: string, process: RunningProcess) => void;
+  /** Keep stdout/stderr in the result. Turn off for long-lived streams like syslog. */
+  bufferOutput?: boolean;
 }
 
 export interface ProcessResult {
@@ -46,6 +48,7 @@ export function start(
   let timedOut = false;
   let cancelled = false;
   let spawnError: string | undefined;
+  const buffer = options.bufferOutput ?? true;
 
   const handle: RunningProcess = {
     get pid() {
@@ -67,13 +70,13 @@ export function start(
   child.stderr.setEncoding("utf8");
   child.stdout.on("data", (chunk: string) => {
     const text = stripAnsi(chunk);
-    stdout += text;
+    if (buffer) stdout += text;
     outLines.push(text);
     options.onStdoutData?.(text, handle);
   });
   child.stderr.on("data", (chunk: string) => {
     const text = stripAnsi(chunk);
-    stderr += text;
+    if (buffer) stderr += text;
     errLines.push(text);
   });
   child.stdin.on("error", () => {

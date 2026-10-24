@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  baseProcessName,
   launchPath,
   parseApps,
   parseCrashList,
@@ -90,5 +91,12 @@ describe("go-ios output parsing", () => {
     ).toEqual([
       { bundleId: "dev.slipway.canary", name: "Canary", executable: "Canary", version: "1.0.0" },
     ]);
+  });
+
+  it("maps framework-tagged syslog process names to the app", () => {
+    expect(baseProcessName("Canary(Foundation)")).toBe("Canary");
+    expect(baseProcessName("Canary(libswiftCore.dylib)")).toBe("Canary");
+    expect(baseProcessName("Canary")).toBe("Canary");
+    expect(baseProcessName(undefined)).toBeUndefined();
   });
 });

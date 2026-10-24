@@ -69,12 +69,15 @@ export function parseWroteTo(stdout: string): string | undefined {
 
 export const REVOCATION_HEADER = "The following certificates must be revoked:";
 
+/**
+ * The certificate list goes through buffered print() while the prompt is written
+ * straight to the fd (Console.swift), so either can reach the pipe first.
+ */
 export function parseRevocationPrompt(text: string): string[] | undefined {
   const start = text.lastIndexOf(REVOCATION_HEADER);
-  if (start < 0) return undefined;
-  const rest = text.slice(start + REVOCATION_HEADER.length);
-  if (!/Continue\? \(yes\/no\): ?$/.test(rest)) return undefined;
-  return rest
+  if (start < 0 || !/Continue\? \(yes\/no\): ?/.test(text)) return undefined;
+  return text
+    .slice(start + REVOCATION_HEADER.length)
     .split("\n")
     .map((line) => /^- (.+)$/.exec(line.trim())?.[1])
     .filter((name): name is string => name !== undefined);
@@ -89,7 +92,7 @@ export function authErrorHint(text: string): string | undefined {
   if (/-8004[56]\b/.test(text)) {
     return "Apple rejected the sign-in request. Update xtool to 1.23.0 or later, which uses the login method Apple accepts now.";
   }
-  if (/requires logging in|not logged in|Logged out/i.test(text)) {
+  if (/requires logging in|Please log in|not logged in|Logged out/i.test(text)) {
     return 'You\'re not signed in to Apple. Run "Slipway: Sign In to Apple".';
   }
   return undefined;
