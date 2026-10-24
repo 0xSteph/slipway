@@ -1,0 +1,8 @@
+Building for debugging...
+[1 / 6] Canary
+[9 / 12] Canary
+[12 / 13] Canary
+[13 / 13] Canary-App-product
+Build complete! (1.26 secs)
+Planning...
+Wrote to /home/dev/Canary/xtool/Canary.app
