@@ -1,10 +1,11 @@
 import { existsSync } from "node:fs";
 import { isWsl } from "./util/wsl";
 import { windowsChecks } from "./windowsSetup";
+import * as os from "node:os";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { GoIos } from "./bridge/goios";
-import { launchPath } from "./bridge/parse";
+import { GO_IOS_VERSION, launchPath } from "./bridge/parse";
 import { DeviceManager } from "./devices";
 import { projectWarnings } from "./freeAccount";
 import { findProject } from "./project/project";
@@ -38,6 +39,12 @@ export const SWIFT_EXTENSION_ID = "swiftlang.swift-vscode";
 const USBIPD_DOCS = "https://learn.microsoft.com/windows/wsl/connect-usb";
 const XTOOL_INSTALL =
   'mkdir -p ~/.local/bin && curl -fL "https://github.com/xtool-org/xtool/releases/latest/download/xtool-$(uname -m).AppImage" -o ~/.local/bin/xtool && chmod +x ~/.local/bin/xtool';
+
+function tildify(p: string | undefined): string {
+  if (!p) return "";
+  const home = os.homedir();
+  return p.startsWith(home + path.sep) ? "~" + p.slice(home.length) : p;
+}
 
 function copyFix(title: string, text: string): Fix {
   return {
@@ -99,7 +106,7 @@ export async function runChecks(
       id: "swift",
       label: `Swift ${swiftVersion.join(".")}`,
       status: "pass",
-      detail: tools.swiftPath() ?? "",
+      detail: tildify(tools.swiftPath()),
     });
   }
   if (swiftVersion && tools.swiftOnlyViaFallback()) {
@@ -157,7 +164,7 @@ export async function runChecks(
       ? `Slipway needs xtool ${XTOOL_MIN.join(".")} or later (older versions can't sign in to Apple).`
       : untested
         ? "Newer than the versions Slipway was tested with."
-        : (tools.xtoolPath() ?? ""),
+        : tildify(tools.xtoolPath()),
     fix: tooOld ? copyFix("Copy update command", XTOOL_INSTALL) : undefined,
   });
 
@@ -171,7 +178,7 @@ export async function runChecks(
           detail:
             isWsl() && sdk.path?.startsWith("/mnt/")
               ? "The SDK is on the Windows drive, which makes builds slow. Reinstall it inside Linux."
-              : (sdk.path ?? ""),
+              : tildify(sdk.path),
         }
       : {
           id: "sdk",
@@ -262,7 +269,7 @@ export async function runChecks(
           id: "bridge",
           label: "Device bridge (go-ios)",
           status: "pass",
-          detail: tools.goIosPath() ?? "",
+          detail: GO_IOS_VERSION,
         }
       : {
           id: "bridge",
