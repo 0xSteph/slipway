@@ -1,0 +1,67 @@
+name: Test report
+description: Tried Slipway on an iPhone or a Windows PC? Tell us how it went, good or bad.
+labels: ["test report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Running on an iPhone and the Windows setup haven't been tested on real hardware yet, so every report helps.
+        Please attach the output of **Slipway: Collect Diagnostics** (redacted by default).
+  - type: dropdown
+    id: host
+    attributes:
+      label: Computer
+      options:
+        - Windows 11 + WSL
+        - Ubuntu
+        - Other Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: route
+    attributes:
+      label: How the iPhone connects (Windows only)
+      options:
+        - Apple Devices + mirrored networking
+        - usbipd-win
+        - Not sure
+        - Not applicable
+  - type: input
+    id: ios
+    attributes:
+      label: iPhone model and iOS version
+      placeholder: iPhone 15, iOS 26.1
+    validations:
+      required: true
+  - type: dropdown
+    id: account
+    attributes:
+      label: Apple account
+      options:
+        - Free Apple ID
+        - Paid Apple Developer Program
+  - type: checkboxes
+    id: worked
+    attributes:
+      label: What worked?
+      options:
+        - label: Doctor all green
+        - label: Build
+        - label: Install on the iPhone
+        - label: Launch from Run
+        - label: Device log shows my app's output
+        - label: Stop quits the app
+        - label: Crash report opened after a crash
+        - label: Refresh reinstalled without rebuilding
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Where did it stop or surprise you? Paste error messages as text.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste or attach the Collect Diagnostics report.

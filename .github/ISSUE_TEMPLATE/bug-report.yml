@@ -1,0 +1,27 @@
+name: Bug report
+description: Something in Slipway doesn't work as described.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a project with xtool.yml
+        2. Press Run
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Run **Slipway: Collect Diagnostics** (redacted by default) and paste or attach the report.
+    validations:
+      required: true

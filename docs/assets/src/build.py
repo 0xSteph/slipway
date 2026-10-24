@@ -786,9 +786,9 @@ def header(theme):
     t = d.t
     d.add(app_icon(d, W / 2 - 72, 34, 144))
     d.text(W / 2, 262, "Slipway", face="display", weight=700, size=72, anchor="middle", ls=-0.03)
-    d.text(W / 2, 318, "iOS development in VS Code, on Linux and Windows.", face="display", weight=500,
+    d.text(W / 2, 318, "iPhone apps from VS Code, on Windows and Linux.", face="display", weight=500,
            size=27, fill=t["label2"], anchor="middle", ls=-0.01)
-    return d.svg("Slipway: iOS development in VS Code, on Linux and Windows")
+    return d.svg("Slipway: iPhone apps from VS Code, on Windows and Linux")
 
 
 def logo():

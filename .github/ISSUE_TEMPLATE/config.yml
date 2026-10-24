@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/0xSteph/slipway/security/advisories/new
+    about: Report vulnerabilities privately, not as a public issue.
+  - name: xtool issues
+    url: https://github.com/xtool-org/xtool/issues
+    about: Problems with building, signing or installing that also happen with xtool on its own.

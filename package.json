@@ -354,7 +354,7 @@
     "test:unit": "vitest run",
     "pretest:integration": "npm run compile && tsc -p test/integration",
     "test:integration": "vscode-test",
-    "package": "npm run compile -- --production && vsce package"
+    "package": "npm run compile -- --production && vsce package --readme-path README.marketplace.md"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
