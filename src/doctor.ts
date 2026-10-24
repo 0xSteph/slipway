@@ -1,4 +1,6 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
+import { isWsl } from "./util/wsl";
+import { windowsChecks } from "./windowsSetup";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { GoIos } from "./bridge/goios";
@@ -33,6 +35,7 @@ export interface CheckResult {
 }
 
 export const SWIFT_EXTENSION_ID = "swiftlang.swift-vscode";
+const USBIPD_DOCS = "https://learn.microsoft.com/windows/wsl/connect-usb";
 const XTOOL_INSTALL =
   'mkdir -p ~/.local/bin && curl -fL "https://github.com/xtool-org/xtool/releases/latest/download/xtool-$(uname -m).AppImage" -o ~/.local/bin/xtool && chmod +x ~/.local/bin/xtool';
 
@@ -44,15 +47,6 @@ function copyFix(title: string, text: string): Fix {
   };
 }
 
-function isWsl(): boolean {
-  if (process.env.WSL_DISTRO_NAME) return true;
-  try {
-    return /microsoft/i.test(readFileSync("/proc/version", "utf8"));
-  } catch {
-    return false;
-  }
-}
-
 /** Runs every setup check in dependency order. Commands that touch Apple's servers are never run here. */
 export async function runChecks(
   tools: Tools,
@@ -62,16 +56,7 @@ export async function runChecks(
   const results: CheckResult[] = [];
   const add = (r: CheckResult) => results.push(r);
 
-  if (process.platform === "win32") {
-    add({
-      id: "host",
-      label: "Windows: use WSL",
-      status: "fail",
-      detail: "Slipway runs on the Linux side. Open this folder in WSL.",
-      fix: { title: "Reopen in WSL", command: "remote-wsl.reopenInWSL" },
-    });
-    return results;
-  }
+  if (process.platform === "win32") return windowsChecks();
   if (process.platform === "darwin") {
     add({
       id: "host",
@@ -218,21 +203,45 @@ export async function runChecks(
         },
   );
 
+  if (isWsl()) {
+    const route = await tools.resolvePhoneRoute();
+    add(
+      route.kind === "none"
+        ? {
+            id: "phoneRoute",
+            label: "iPhone connection from WSL",
+            status: "warn",
+            detail:
+              "WSL can't see a phone yet. Easiest: install Apple Devices on Windows and turn on WSL mirrored networking. Or forward USB with usbipd-win.",
+            fix: {
+              title: "usbipd guide",
+              command: "vscode.open",
+              args: [vscode.Uri.parse(USBIPD_DOCS)],
+            },
+          }
+        : {
+            id: "phoneRoute",
+            label: "iPhone connection from WSL",
+            status: "pass",
+            detail:
+              route.kind === "usbmuxd"
+                ? "USB forwarded into WSL (usbipd)"
+                : `Apple Devices service on Windows (${route.address})`,
+          },
+    );
+  }
+
   await devices.refresh();
   const device = devices.selected;
   if (!device) {
-    const muxd = existsSync("/var/run/usbmuxd");
     add({
       id: "device",
       label: "iPhone",
       status: "warn",
-      detail: muxd
-        ? devices.all.length > 1
+      detail:
+        devices.all.length > 1
           ? "Several devices are connected. Choose one."
-          : "No iPhone connected. Plug it in, unlock it and tap Trust."
-        : isWsl()
-          ? "No iPhone visible. Attach it to WSL with usbipd (usbipd attach --wsl --busid <id>)."
-          : "No iPhone connected. Plug it in, unlock it and tap Trust. (usbmuxd starts when a phone is plugged in.)",
+          : "No iPhone connected. Plug it in, unlock it and tap Trust.",
       fix:
         devices.all.length > 1 ? { title: "Choose", command: "slipway.selectDevice" } : undefined,
     });

@@ -1,4 +1,5 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { PhoneRoute, findPhoneRoute } from "./util/wsl";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -7,6 +8,9 @@ import { ProcessOptions, ProcessResult, RunningProcess, run, start } from "./uti
 
 /** Resolves and spawns xtool, swift and go-ios with an environment that has them on PATH. */
 export class Tools {
+  /** USBMUXD_SOCKET_ADDRESS for Apple's Windows service when running in WSL. */
+  phoneAddress: string | undefined;
+
   constructor(
     private readonly storage: vscode.Uri,
     readonly log: vscode.LogOutputChannel,
@@ -14,7 +18,24 @@ export class Tools {
 
   env(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
     const dirs = toolDirs(process.env, os.homedir(), existsSync);
-    return { ...toolEnv(process.env, dirs), ...extra };
+    const phone =
+      this.phoneAddress && !process.env.USBMUXD_SOCKET_ADDRESS
+        ? { USBMUXD_SOCKET_ADDRESS: this.phoneAddress }
+        : {};
+    return { ...toolEnv(process.env, dirs), ...phone, ...extra };
+  }
+
+  /** Under WSL, finds how the phone is reachable and remembers Apple's relay address if that's the way. */
+  async resolvePhoneRoute(): Promise<PhoneRoute> {
+    const route = await findPhoneRoute(process.env, existsSync("/var/run/usbmuxd"), () => {
+      try {
+        return readFileSync("/proc/net/route", "utf8");
+      } catch {
+        return undefined;
+      }
+    });
+    this.phoneAddress = route.kind === "appleRelay" ? route.address : undefined;
+    return route;
   }
 
   xtoolPath(): string | undefined {

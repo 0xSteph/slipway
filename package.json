@@ -162,6 +162,11 @@
         "command": "slipway.copyToClipboard",
         "title": "Copy to Clipboard",
         "category": "Slipway"
+      },
+      {
+        "command": "slipway.enableMirroredNetworking",
+        "title": "Turn On WSL Mirrored Networking (Windows)",
+        "category": "Slipway"
       }
     ],
     "menus": {

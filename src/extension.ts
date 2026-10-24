@@ -17,6 +17,8 @@ import { RunController } from "./run";
 import { XCODE_DOWNLOADS, installSdk, signIn, signOut } from "./setup";
 import { SlipwayTaskProvider } from "./tasks";
 import { Tools } from "./tools";
+import { isWsl } from "./util/wsl";
+import { enableMirroredNetworking } from "./windowsSetup";
 
 /** The returned object is for Slipway's own integration tests, not a public API. */
 export function activate(context: vscode.ExtensionContext): {
@@ -84,6 +86,10 @@ export function activate(context: vscode.ExtensionContext): {
     );
 
   command("slipway.doctor.refresh", () => doctor.refresh());
+  command("slipway.enableMirroredNetworking", async () => {
+    await enableMirroredNetworking();
+    await doctor.refresh();
+  });
   command("slipway.doctor.fix", (item: { fix?: { command: string; args?: unknown[] } }) =>
     item.fix
       ? vscode.commands.executeCommand(item.fix.command, ...(item.fix.args ?? []))
@@ -232,7 +238,10 @@ export function activate(context: vscode.ExtensionContext): {
     }),
   );
 
-  void doctor.refresh();
+  // Doctor resolves the WSL phone route too; doing it first means the first device poll already has it.
+  void (isWsl() ? tools.resolvePhoneRoute().catch(() => undefined) : Promise.resolve()).then(() =>
+    doctor.refresh(),
+  );
   return { checks: () => doctor.current };
 }
 

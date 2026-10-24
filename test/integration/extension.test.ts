@@ -53,9 +53,10 @@ suite("Slipway extension", () => {
       checks.map((c) => `      [${c.status}] ${c.id}: ${c.label} — ${c.detail}`).join("\n"),
     );
     if (process.platform === "win32") {
+      // On Windows itself Doctor is a WSL setup guide; the toolchain checks run inside WSL.
       assert.deepStrictEqual(
-        checks.map((c) => [c.id, c.status]),
-        [["host", "fail"]],
+        checks.map((c) => c.id),
+        ["host", "wsl", "wslExt", "appleDevices", "mirrored", "openInWsl"],
       );
       return;
     }
