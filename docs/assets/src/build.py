@@ -183,6 +183,7 @@ def glyph(name, x, y, s, color, w=1.6):
         "stop": "M7 7h10v10H7z",
         "play": "M8 5.5v13l10.5-6.5z",
         "rotate": "M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4",
+        "key": "M15 3.5a5.5 5.5 0 1 1-5.2 7.3L3.5 17.1V20.5H7V18h2.5v-2.5H12l1.6-1.6A5.5 5.5 0 0 1 15 3.5zM16.5 7.5h.01",
     }
     k = s / 24
     return (f'<g transform="translate({x:.2f},{y:.2f}) scale({k:.4f})">'
@@ -745,18 +746,20 @@ def flow(theme):
             d.text(x + 58, ry + 1, r_, size=15)
             ry += 44
 
-    cw = 500
-    ax, ay = 80, 146
-    bx, by = 1020, 40
-    cx, cy = 1020, 290
-    card(ax, ay, cw, "laptop", "Your computer", "Ubuntu, Fedora, or Windows with WSL",
-         [("files", "VS Code with Slipway"), ("doc", "Swift language server"), ("check", "xtool builds and signs")],
+    cw = 520
+    ax, ay = 70, 129
+    bx, by = 1010, 40
+    cx, cy = 1010, 300
+    card(ax, ay, cw, "laptop", "Your computer", "Windows with WSL, or Linux",
+         [("files", "VS Code with Slipway"), ("folder", "iOS SDK from your own Xcode download"),
+          ("check", "xtool builds and signs"), ("phone", "go-ios launches and reads logs")],
          "No Mac", True)
-    card(bx, by, cw, "phone", "iPhone or iPad", "Your device, over USB or Wi-Fi",
-         [("play", "Install and launch"), ("panel", "Stream device logs")], "No Mac", True)
-    card(cx, cy, cw, "mac", "A Mac you can reach", "Your own, or one rented by the hour",
-         [("debug", "Simulators and xcodebuild"), ("tablet", "Device Gallery and live preview")],
-         "Mac required", False)
+    card(bx, by, cw, "phone", "Your iPhone", "Connected with a USB cable",
+         [("play", "Install and launch"), ("panel", "Live device log"), ("doc", "Crash reports")],
+         "USB", False)
+    card(cx, cy, cw, "key", "Apple", "Your Apple ID; a free one works",
+         [("key", "Sign in through xtool"), ("rotate", "7-day signing, refreshed in one click")],
+         "Sign-in", False)
 
     def lane(y, label, back=False):
         x1, x2 = ax + cw + 14, bx - 14
@@ -772,10 +775,9 @@ def flow(theme):
               f'stroke="{t["sep"]}"/>')
         d.text(mx, y + 4.5, label, weight=500, size=13, fill=t["label2"], anchor="middle")
 
-    lane(180, "Build, sign, install")
-    lane(322, "Sources over SSH")
-    lane(362, "Live simulator stream", back=True)
-    return d.svg("How Slipway works: your computer builds and installs on your iPhone directly; a reachable Mac runs simulators and streams them back")
+    lane(154, "Install, launch, logs")
+    lane(372, "Sign and refresh")
+    return d.svg("How Slipway works: your computer builds with the iOS SDK from your Xcode download, xtool signs with your Apple ID, and the app installs and launches on your iPhone over USB")
 
 
 # ---------------------------------------------------------------- header

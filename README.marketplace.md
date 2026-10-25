@@ -2,7 +2,7 @@
 
 **Build and run SwiftUI iPhone apps on Windows and Linux, in VS Code. No Mac required.**
 
-![Slipway's Doctor panel and a SwiftUI build in VS Code](docs/assets/screenshots/doctor-build-dark.png)
+![A typo flagged as you type, reported by the build, fixed and rebuilt in 2.4 seconds](docs/assets/screenshots/demo-build-fix.gif)
 
 Slipway puts [xtool](https://github.com/xtool-org/xtool) inside VS Code and handles
 everything around it: setup, the build, your phone, the logs and the free Apple ID
@@ -23,7 +23,7 @@ limits. You write SwiftUI, press Run, and the app opens on your iPhone.
 - **New iOS App** templates that build on Linux, including a Local Notifications starter.
 - **Windows setup guide** for WSL and Apple Devices, then automatic iPhone detection from WSL.
 
-![A compiler warning in the Problems panel](docs/assets/screenshots/problems-dark.png)
+![Slipway's Doctor panel and a SwiftUI build in VS Code](docs/assets/screenshots/doctor-build-dark-framed.png)
 
 ## Get started
 

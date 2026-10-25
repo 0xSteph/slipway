@@ -7,20 +7,16 @@
 
 **Build and run SwiftUI iPhone apps on Windows and Linux, in VS Code. No Mac required.**
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20(WSL)%20%C2%B7%20Linux-informational)](#quick-start)
-[![VS Code](https://img.shields.io/badge/VS%20Code-1.93%2B-007ACC)](https://code.visualstudio.com/)
-[![Status](https://img.shields.io/badge/status-early%20preview-orange)](#status)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Platforms](https://img.shields.io/badge/platforms-Windows%20(WSL)%20%C2%B7%20Linux-informational)](#quick-start) [![VS Code](https://img.shields.io/badge/VS%20Code-1.93%2B-007ACC)](https://code.visualstudio.com/) [![Status](https://img.shields.io/badge/status-early%20preview-orange)](#status)
 
 [Quick start](#quick-start) · [Features](#features) · [How it works](#how-it-works) · [FAQ](#faq) · [Roadmap](#roadmap)
 
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/doctor-build-dark.png">
-  <img src="docs/assets/screenshots/doctor-build-light.png" alt="VS Code on Linux with Slipway: the Doctor panel lists Swift 6.4.1, xtool 1.23.0, the iOS SDK and go-ios as ready, a SwiftUI weather app is open in the editor, and the status bar says Built in 2.0 s.">
-</picture>
-<p align="center"><sub>A real screenshot: Slipway's Doctor and a SwiftUI build on Ubuntu.</sub></p>
+<p align="center">
+  <img src="docs/assets/screenshots/demo-build-fix.gif" width="880" alt="Screen recording in VS Code on Ubuntu: a typo in a SwiftUI file is underlined as you type, Slipway's build lists it in the Problems panel, the typo is fixed and the app rebuilds in 2.4 seconds.">
+</p>
+<p align="center"><sub>A real recording on Ubuntu: a typo is flagged as you type, the build reports it, and the fix rebuilds in 2.4 s.</sub></p>
 
 For years, making an iPhone app meant buying a Mac. [xtool](https://github.com/xtool-org/xtool)
 changed that. It builds, signs and installs iOS apps from Linux and Windows. Slipway
@@ -84,10 +80,10 @@ USB passthrough with [usbipd-win](https://learn.microsoft.com/windows/wsl/connec
 ## Features
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/problems-dark.png">
-  <img src="docs/assets/screenshots/problems-light.png" alt="A SwiftUI file in VS Code with a compiler warning underlined, listed in the Problems panel, with Slipway's Doctor on the left.">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/doctor-build-dark-framed.png">
+  <img src="docs/assets/screenshots/doctor-build-light-framed.png" alt="VS Code on Linux with Slipway: the Doctor panel lists Swift 6.4.1, xtool 1.23.0, the iOS SDK and go-ios as ready, a SwiftUI weather app is open in the editor, and the status bar says Built in 2.0 s.">
 </picture>
-<p align="center"><sub>Warnings and errors land in the Problems panel, with live diagnostics against the iOS SDK.</sub></p>
+<p align="center"><sub>The Doctor panel and a finished build on Ubuntu. A real screenshot.</sub></p>
 
 **Doctor.** It checks Swift, xtool, the iOS SDK, your Apple
 sign-in, the phone, Developer Mode and the device tools. Every red row says what's wrong
@@ -96,6 +92,11 @@ in one sentence and has a fix.
 **Fast builds.** The first build of a new app takes under a minute. After that, a
 one-line change rebuilds in about 2 seconds (measured on a 16-thread Ubuntu desktop).
 Errors and warnings land in the Problems panel on the right line.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/problems-dark-framed.png">
+  <img src="docs/assets/screenshots/problems-light-framed.png" alt="A SwiftUI file in VS Code with a compiler warning underlined and listed in the Problems panel, with Slipway's Doctor on the left.">
+</picture>
 
 **iOS code completion.** With the official Swift extension, completion and live errors
 use the iOS SDK, so `UIApplication` and SwiftUI resolve like they do in Xcode.
@@ -131,6 +132,11 @@ team ID, device IDs and home folder removed.
 | macOS host | Not a target. On a Mac, use Xcode. |
 
 ## How it works
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/flow-dark.svg">
+  <img src="docs/assets/flow-light.svg" alt="Your computer, running Windows with WSL or Linux, has VS Code with Slipway, the iOS SDK from your own Xcode download, xtool and go-ios. It installs, launches and reads logs on your iPhone over USB, and signs in to Apple with your Apple ID for 7-day signing.">
+</picture>
 
 Slipway coordinates several tools, each doing one job:
 
