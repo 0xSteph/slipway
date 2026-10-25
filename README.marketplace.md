@@ -27,6 +27,8 @@ limits. You write SwiftUI, press Run, and the app opens on your iPhone.
 
 ![Slipway's Doctor panel and a SwiftUI build in VS Code](docs/assets/screenshots/doctor-build-dark-framed.png)
 
+*The Apple sign-in and iPhone rows in this screenshot are simulated.*
+
 ## Get started
 
 1. **Windows:** install WSL with Ubuntu (`wsl --install -d Ubuntu-24.04`), Apple Devices from the Microsoft Store, and VS Code's WSL extension. Open the Slipway panel; it guides you through the rest and reopens your project in WSL.

@@ -81,9 +81,9 @@ USB passthrough with [usbipd-win](https://learn.microsoft.com/windows/wsl/connec
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/doctor-build-dark-framed.png">
-  <img src="docs/assets/screenshots/doctor-build-light-framed.png" alt="VS Code on Linux with Slipway: the Doctor panel lists Swift 6.4.1, xtool 1.23.0, the iOS SDK and go-ios as ready, a SwiftUI weather app is open in the editor, and the status bar says Built in 2.0 s.">
+  <img src="docs/assets/screenshots/doctor-build-light-framed.png" alt="VS Code on Linux with Slipway: every Doctor check is green, from Swift 6.4.1, xtool 1.23.0 and the iOS SDK to the Apple sign-in and the iPhone, a SwiftUI weather app is open in the editor, and the status bar shows a finished build.">
 </picture>
-<p align="center"><sub>The Doctor panel and a finished build on Ubuntu. A real screenshot.</sub></p>
+<p align="center"><sub>Screenshots on Ubuntu. The builds and the warning are real; the Apple sign-in and iPhone rows in Doctor are simulated.</sub></p>
 
 **Doctor.** It checks Swift, xtool, the iOS SDK, your Apple
 sign-in, the phone, Developer Mode and the device tools. Every red row says what's wrong
