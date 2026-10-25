@@ -14,9 +14,9 @@
 </div>
 
 <p align="center">
-  <img src="docs/assets/screenshots/demo-build-fix.gif" width="880" alt="Screen recording in VS Code on Ubuntu: a typo in a SwiftUI file is underlined as you type, Slipway's build lists it in the Problems panel, the typo is fixed and the app rebuilds in 2.4 seconds.">
+  <img src="docs/assets/screenshots/demo-edit-build.gif" width="880" alt="Screen recording in VS Code on Ubuntu: Slipway's setup checks are all green, a SwiftUI file is edited with iOS SDK autocomplete, and the app builds in 2.5 seconds.">
 </p>
-<p align="center"><sub>A real recording on Ubuntu: a typo is flagged as you type, the build reports it, and the fix rebuilds in 2.4 s.</sub></p>
+<p align="center"><sub>Recorded on Ubuntu. The editing, autocomplete and 2.5 s build are real; the Apple sign-in and iPhone in the sidebar are simulated.</sub></p>
 
 For years, making an iPhone app meant buying a Mac. [xtool](https://github.com/xtool-org/xtool)
 changed that. It builds, signs and installs iOS apps from Linux and Windows. Slipway

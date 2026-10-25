@@ -2,7 +2,9 @@
 
 **Build and run SwiftUI iPhone apps on Windows and Linux, in VS Code. No Mac required.**
 
-![A typo flagged as you type, reported by the build, fixed and rebuilt in 2.4 seconds](docs/assets/screenshots/demo-build-fix.gif)
+![Editing SwiftUI with iOS SDK autocomplete, then building in 2.5 seconds](docs/assets/screenshots/demo-edit-build.gif)
+
+*Recorded on Ubuntu. The editing, autocomplete and build are real; the Apple sign-in and iPhone in the sidebar are simulated.*
 
 Slipway puts [xtool](https://github.com/xtool-org/xtool) inside VS Code and handles
 everything around it: setup, the build, your phone, the logs and the free Apple ID
